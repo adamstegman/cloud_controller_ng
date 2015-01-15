@@ -9,5 +9,9 @@ module VCAP::CloudController
     def validate
       validates_includes PACKAGE_STATES, :state, allow_missing: true
     end
+
+    def stage_with_diego?
+      false
+    end
   end
 end

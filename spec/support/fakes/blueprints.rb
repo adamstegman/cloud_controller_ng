@@ -40,6 +40,11 @@ module VCAP::CloudController
     state   { VCAP::CloudController::PackageModel::CREATED_STATE }
   end
 
+  DropletModel.blueprint do
+    guid    { Sham.guid }
+    state   { VCAP::CloudController::DropletModel::STAGING_STATE }
+  end
+
   User.blueprint do
     guid              { Sham.uaa_id }
   end

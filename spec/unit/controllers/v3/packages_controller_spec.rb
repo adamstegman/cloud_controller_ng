@@ -324,5 +324,47 @@ module VCAP::CloudController
         end
       end
     end
+
+    describe 'stage' do
+      let(:package) { PackageModel.make }
+
+      context 'when the package does not exist' do
+        before do
+          allow(packages_handler).to receive(:stage).and_raise(PackagesHandler::PackageNotFound)
+        end
+
+        it 'returns a 404 ResourceNotFound error' do
+          expect {
+            packages_controller.stage(package.guid)
+          }.to raise_error do |error|
+            expect(error.name).to eq 'ResourceNotFound'
+            expect(error.response_code).to eq 404
+          end
+        end
+      end
+
+      context 'when the package exists' do
+        context 'and the user is a space developer' do
+          it 'returns a 201 Created response' do
+            expect(packages_handler).to receive(:stage)
+
+            response_code, _ = packages_controller.stage(package.guid)
+            expect(response_code).to eq 201
+          end
+
+          context 'when the PackageStagingMessage is not valid' do
+            let(:req_body) { '{"memory_limit":"invalid"}' }
+            it 'returns an UnprocessableEntity error' do
+              expect {
+                packages_controller.stage(package.guid)
+              }.to raise_error do |error|
+                expect(error.name).to eq 'UnprocessableEntity'
+                expect(error.response_code).to eq 422
+              end
+            end
+          end
+        end
+      end
+    end
   end
 end

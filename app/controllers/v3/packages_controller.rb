@@ -72,6 +72,27 @@ module VCAP::CloudController
       unauthorized!
     end
 
+    post '/v3/packages/:guid/droplets', :stage
+    def stage(package_guid)
+      droplet = DropletModel.new
+      droplet.state = DropletModel::PENDING_STATE
+      droplet.save
+
+      staging_message = PackageStagingMessage.create_from_http_request(package_guid, droplet.guid, body)
+      valid, error = staging_message.validate
+      unprocessable!(error) if !valid
+
+      @packages_handler.stage(staging_message, @access_context)
+
+      [HTTP::CREATED, MultiJson.dump({ guid: droplet.guid, state: 'STAGING', droplet_hash: nil,
+                                       buildpack: nil, staging_environment_variables: nil,
+                                       stack: 'lucid64', memory_limit: 1024, disk_limit: 1024,
+                                       _links: { self: { href: "/v3/droplets/#{droplet.guid}" } }
+                                    })]
+    rescue PackagesHandler::PackageNotFound
+      package_not_found!
+    end
+
     private
 
     def package_not_found!

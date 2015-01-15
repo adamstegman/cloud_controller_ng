@@ -178,7 +178,7 @@ module CloudController
     end
 
     def packages_handler
-      PackagesHandler.new(@config)
+      PackagesHandler.new(@config, stagers)
     end
 
     def package_presenter
