@@ -1,15 +1,19 @@
 require 'presenters/v3/package_presenter'
+require 'presenters/v3/droplet_presenter'
 require 'handlers/packages_handler'
+require 'handlers/droplets_handler'
 
 module VCAP::CloudController
   class PackagesController < RestController::BaseController
     def self.dependencies
-      [:packages_handler, :package_presenter, :apps_handler]
+      [:packages_handler, :package_presenter, :droplets_handler, :droplet_presenter, :apps_handler]
     end
 
     def inject_dependencies(dependencies)
       @packages_handler = dependencies[:packages_handler]
       @package_presenter = dependencies[:package_presenter]
+      @droplets_handler = dependencies[:droplets_handler]
+      @droplet_presenter = dependencies[:droplet_presenter]
       @apps_handler = dependencies[:apps_handler]
     end
 
@@ -74,21 +78,13 @@ module VCAP::CloudController
 
     post '/v3/packages/:guid/droplets', :stage
     def stage(package_guid)
-      droplet = DropletModel.new
-      droplet.state = DropletModel::PENDING_STATE
-      droplet.save
-
-      staging_message = PackageStagingMessage.create_from_http_request(package_guid, droplet.guid, body)
+      staging_message = StagingMessage.create_from_http_request(package_guid, body)
       valid, error = staging_message.validate
       unprocessable!(error) if !valid
 
-      @packages_handler.stage(staging_message, @access_context)
+      droplet = @droplets_handler.create(staging_message, @access_context)
 
-      [HTTP::CREATED, MultiJson.dump({ guid: droplet.guid, state: 'STAGING', droplet_hash: nil,
-                                       buildpack: nil, staging_environment_variables: nil,
-                                       stack: 'lucid64', memory_limit: 1024, disk_limit: 1024,
-                                       _links: { self: { href: "/v3/droplets/#{droplet.guid}" } }
-                                    })]
+      [HTTP::CREATED, @droplet_presenter.present_json(droplet)]
     rescue PackagesHandler::PackageNotFound
       package_not_found!
     end

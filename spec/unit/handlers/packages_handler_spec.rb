@@ -26,90 +26,6 @@ module VCAP::CloudController
     end
   end
 
-  describe PackageStagingMessage do
-    let(:package_guid) { 'package-guid' }
-    let(:droplet_guid) { 'droplet-guid' }
-    let(:memory_limit) { 1024 }
-
-    describe 'create_from_http_request' do
-      context 'when the body is valid json' do
-        let(:body) { MultiJson.dump({ memory_limit: memory_limit }) }
-
-        it 'creates a PackageStagingMessage from the json' do
-          psm           = PackageStagingMessage.create_from_http_request(package_guid, droplet_guid, body)
-          valid, errors = psm.validate
-
-          expect(valid).to be_truthy
-          expect(errors).to be_empty
-        end
-      end
-
-      context 'when the body is not valid json' do
-        let(:body) { '{{' }
-
-        it 'returns a PackageStagingMessage that is not valid' do
-          psm           = PackageStagingMessage.create_from_http_request(package_guid, droplet_guid, body)
-          valid, errors = psm.validate
-
-          expect(valid).to be_falsey
-          expect(errors[0]).to include('parse error')
-        end
-      end
-    end
-
-    context 'when only required fields are provided' do
-      let(:body) { '{}' }
-
-      it 'is valid' do
-        psm = PackageStagingMessage.create_from_http_request(package_guid, droplet_guid, body)
-        valid, errors = psm.validate
-        expect(valid).to be_truthy
-        expect(errors).to be_empty
-      end
-
-      it 'provides default values' do
-        psm = PackageStagingMessage.create_from_http_request(package_guid, droplet_guid, body)
-
-        expect(psm.memory_limit).to eq(1024)
-        expect(psm.disk_limit).to eq(4096)
-        expect(psm.stack).to eq(Stack.default.name)
-      end
-    end
-
-    context 'when memory_limit is not an integer' do
-      let(:body) { MultiJson.dump({ memory_limit: 'stringsarefun' }) }
-
-      it 'is not valid' do
-        psm = PackageStagingMessage.create_from_http_request(package_guid, droplet_guid, body)
-        valid, errors = psm.validate
-        expect(valid).to be_falsey
-        expect(errors[0]).to include('must be an Integer')
-      end
-    end
-
-    context 'when disk_limit is not an integer' do
-      let(:body) { MultiJson.dump({ disk_limit: 'stringsarefun' }) }
-
-      it 'is not valid' do
-        psm = PackageStagingMessage.create_from_http_request(package_guid, droplet_guid, body)
-        valid, errors = psm.validate
-        expect(valid).to be_falsey
-        expect(errors[0]).to include('must be an Integer')
-      end
-    end
-
-    context 'when stack is not a string' do
-      let(:body) { MultiJson.dump({ stack: 1024 }) }
-
-      it 'is not valid' do
-        psm = PackageStagingMessage.create_from_http_request(package_guid, droplet_guid, body)
-        valid, errors = psm.validate
-        expect(valid).to be_falsey
-        expect(errors[0]).to include('must be a String')
-      end
-    end
-  end
-
   describe PackageCreateMessage do
     let(:guid) { 'my-guid' }
 
@@ -219,8 +135,7 @@ module VCAP::CloudController
     }
 
     let(:config) { TestConfig.config }
-    let(:stagers) { double(:stagers) }
-    let(:packages_handler) { described_class.new(config, stagers) }
+    let(:packages_handler) { described_class.new(config) }
     let(:access_context) { double(:access_context) }
     let(:space) { Space.make }
 
@@ -495,37 +410,6 @@ module VCAP::CloudController
             expect(deleted_package).to be_nil
           }.to raise_error(PackagesHandler::Unauthorized)
           expect(access_context).to have_received(:cannot?).with(:delete, kind_of(PackageModel), space)
-        end
-      end
-    end
-
-    describe 'stage' do
-      let(:package) { PackageModel.make(space_guid: space.guid) }
-      let(:droplet) { DropletModel.make }
-      let(:package_guid) { package.guid }
-      let(:droplet_guid) { droplet.guid }
-      let(:stack) { 'trusty32' }
-      let(:memory_limit) { 12340 }
-      let(:disk_limit) { 32100 }
-      let(:body) { { stack: stack, memory_limit: memory_limit, disk_limit: disk_limit }.stringify_keys }
-      let(:staging_message) { PackageStagingMessage.new(package_guid, droplet_guid, body) }
-      let(:stager) { double(:stager) }
-
-      context 'when the package does not exist'
-      context 'when the package does exist' do
-        context 'and the user is not a space developer'
-        context 'and the user is a space developer' do
-          before do
-            allow(stagers).to receive(:stager_for_package).with(package).and_return(stager)
-          end
-
-          it 'initiates a staging request' do
-            expect(stager).to receive(:stage_package).with(droplet, stack, memory_limit, disk_limit)
-
-            packages_handler = described_class.new(config, stagers)
-
-            packages_handler.stage(staging_message, access_context)
-          end
         end
       end
     end

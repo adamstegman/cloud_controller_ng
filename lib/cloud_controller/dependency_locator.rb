@@ -178,11 +178,19 @@ module CloudController
     end
 
     def packages_handler
-      PackagesHandler.new(@config, stagers)
+      PackagesHandler.new(@config)
     end
 
     def package_presenter
       PackagePresenter.new
+    end
+
+    def droplets_handler
+      DropletsHandler.new(@config, stagers)
+    end
+
+    def droplet_presenter
+      DropletPresenter.new
     end
 
     def object_renderer

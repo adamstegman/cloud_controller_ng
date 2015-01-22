@@ -231,13 +231,9 @@ resource 'Packages (Experimental)', type: :api do
         droplet = VCAP::CloudController::DropletModel.last
         expected_response = {
           'guid' => droplet.guid,
-          'state' => 'STAGING',
-          'droplet_hash' => nil,
-          'buildpack' => nil,
-          'staging_environment_variables' => nil,
-          'stack' => 'lucid64',
-          'memory_limit' => 1024,
-          'disk_limit' => 1024,
+          'state' => 'PENDING',
+          'hash' => nil,
+          'created_at' => droplet.created_at.as_json,
           '_links'     => {
             'self'   => { 'href' => "/v3/droplets/#{droplet.guid}" },
           }

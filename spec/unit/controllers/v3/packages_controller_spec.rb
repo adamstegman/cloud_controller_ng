@@ -7,7 +7,9 @@ module VCAP::CloudController
     let(:params) { {} }
     let(:packages_handler) { double(:packages_handler) }
     let(:apps_handler) { double(:apps_handler) }
+    let(:droplets_handler) { double(:droplets_handler) }
     let(:package_presenter) { double(:package_presenter) }
+    let(:droplet_presenter) { double(:droplet_presenter) }
     let(:req_body) { '{}' }
 
     let(:packages_controller) do
@@ -21,6 +23,8 @@ module VCAP::CloudController
         {
           packages_handler: packages_handler,
           package_presenter: package_presenter,
+          droplets_handler: droplets_handler,
+          droplet_presenter: droplet_presenter,
           apps_handler: apps_handler
         },
       )
@@ -325,12 +329,17 @@ module VCAP::CloudController
       end
     end
 
-    describe 'stage' do
+    describe '#stage' do
       let(:package) { PackageModel.make }
+      let(:droplet_response) { 'barbaz' }
+
+      before do
+        allow(droplet_presenter).to receive(:present_json).and_return(droplet_response)
+      end
 
       context 'when the package does not exist' do
         before do
-          allow(packages_handler).to receive(:stage).and_raise(PackagesHandler::PackageNotFound)
+          allow(droplets_handler).to receive(:create).and_raise(PackagesHandler::PackageNotFound)
         end
 
         it 'returns a 404 ResourceNotFound error' do
@@ -346,14 +355,16 @@ module VCAP::CloudController
       context 'when the package exists' do
         context 'and the user is a space developer' do
           it 'returns a 201 Created response' do
-            expect(packages_handler).to receive(:stage)
+            expect(droplets_handler).to receive(:create)
 
-            response_code, _ = packages_controller.stage(package.guid)
+            response_code, body = packages_controller.stage(package.guid)
             expect(response_code).to eq 201
+            expect(body).to eq droplet_response
           end
 
-          context 'when the PackageStagingMessage is not valid' do
+          context 'when the StagingMessage is not valid' do
             let(:req_body) { '{"memory_limit":"invalid"}' }
+
             it 'returns an UnprocessableEntity error' do
               expect {
                 packages_controller.stage(package.guid)
