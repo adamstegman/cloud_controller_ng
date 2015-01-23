@@ -392,6 +392,21 @@ module VCAP::CloudController
         end
       end
 
+      context 'when the request is invalid' do
+        before do
+          allow(droplets_handler).to receive(:create).and_raise(DropletsHandler::InvalidRequest)
+        end
+
+        it 'returns a 404 ResourceNotFound error' do
+          expect {
+            packages_controller.stage(package.guid)
+          }.to raise_error do |error|
+            expect(error.name).to eq 'InvalidRequest'
+            expect(error.response_code).to eq 400
+          end
+        end
+      end
+
       context 'when the user cannot access the droplet' do
         before do
           allow(droplets_handler).to receive(:create).and_raise(DropletsHandler::Unauthorized)

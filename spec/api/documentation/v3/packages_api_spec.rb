@@ -193,7 +193,7 @@ resource 'Packages (Experimental)', type: :api do
       let(:space) { VCAP::CloudController::Space.make }
       let(:space_guid) { space.guid }
       let!(:package_model) do
-        VCAP::CloudController::PackageModel.make(space_guid: space_guid)
+        VCAP::CloudController::PackageModel.make(space_guid: space_guid, type: VCAP::CloudController::PackageModel::BITS_TYPE)
       end
       let(:guid) { package_model.guid }
 

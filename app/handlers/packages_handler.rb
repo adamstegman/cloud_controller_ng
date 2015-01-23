@@ -45,7 +45,7 @@ module VCAP::CloudController
 
     def validate_type_field
       return 'The type field is required' if @type.nil?
-      valid_type_fields = %w(bits docker)
+      valid_type_fields = PackageModel::PACKAGE_TYPES
 
       if !valid_type_fields.include?(@type)
         return "The type field needs to be one of '#{valid_type_fields.join(', ')}'"

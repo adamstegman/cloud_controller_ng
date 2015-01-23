@@ -91,6 +91,8 @@ module VCAP::CloudController
       space_not_found!
     rescue DropletsHandler::Unauthorized
       unauthorized!
+    rescue DropletsHandler::InvalidRequest => e
+      invalid_request!(e.message)
     end
 
     private

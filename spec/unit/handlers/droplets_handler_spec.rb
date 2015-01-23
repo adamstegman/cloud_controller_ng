@@ -97,7 +97,7 @@ module VCAP::CloudController
 
     describe '#create' do
       let(:space) { Space.make }
-      let(:package) { PackageModel.make(space_guid: space.guid) }
+      let(:package) { PackageModel.make(space_guid: space.guid, type: PackageModel::BITS_TYPE) }
       let(:package_guid) { package.guid }
       let(:stack) { 'trusty32' }
       let(:memory_limit) { 12340 }
@@ -139,6 +139,18 @@ module VCAP::CloudController
             }.to raise_error(DropletsHandler::Unauthorized)
             expect(access_context).to have_received(:cannot?).with(:create, kind_of(DropletModel), space)
           end
+        end
+      end
+
+      context 'when the package type is not bits' do
+        before do
+          package.update(type: PackageModel::DOCKER_TYPE)
+        end
+
+        it 'fails with InvalidRequest' do
+          expect {
+            droplets_handler.create(staging_message, access_context)
+          }.to raise_error(DropletsHandler::InvalidRequest)
         end
       end
 
