@@ -154,6 +154,18 @@ module VCAP::CloudController
         end
       end
 
+      context 'when the package is not ready' do
+        before do
+          package.update(state: PackageModel::CREATED_STATE)
+        end
+
+        it 'fails with InvalidRequest' do
+          expect {
+            droplets_handler.create(staging_message, access_context)
+          }.to raise_error(DropletsHandler::InvalidRequest)
+        end
+      end
+
       context 'when the package does not exist' do
         let(:package_guid) { 'non-existant' }
 

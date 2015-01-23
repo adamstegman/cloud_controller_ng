@@ -84,6 +84,7 @@ module VCAP::CloudController
     def create(message, access_context)
       package = PackageModel.find(guid: message.package_guid)
       raise PackageNotFound if package.nil?
+      raise InvalidRequest.new('Cannot stage package whose state is not ready.') if package.state != PackageModel::READY_STATE
       raise InvalidRequest.new('Cannot stage package whose type is not bits.') if package.type != PackageModel::BITS_TYPE
 
       space = Space.find(guid: package.space_guid)
