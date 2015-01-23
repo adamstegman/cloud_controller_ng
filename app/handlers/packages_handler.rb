@@ -73,11 +73,11 @@ module VCAP::CloudController
     end
 
     def create(message, access_context)
-      package          = PackageModel.new
+      package            = PackageModel.new
       package.space_guid = message.space_guid
-      package.type     = message.type
-      package.url      = message.url
-      package.state = message.type == 'bits' ? PackageModel::CREATED_STATE : PackageModel::READY_STATE
+      package.type       = message.type
+      package.url        = message.url
+      package.state      = message.type == 'bits' ? PackageModel::CREATED_STATE : PackageModel::READY_STATE
 
       space = Space.find(guid: package.space_guid)
       raise SpaceNotFound if space.nil?

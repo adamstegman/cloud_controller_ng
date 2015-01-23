@@ -210,8 +210,8 @@ resource 'Packages (Experimental)', type: :api do
       let(:message_bus) { VCAP::CloudController::Config.message_bus }
 
       before do
-        # space.organization.add_user(user)
-        # space.add_developer(user)
+        space.organization.add_user(user)
+        space.add_developer(user)
         allow(EM).to receive(:add_timer)
         allow(EM).to receive(:defer).and_yield
         allow(EM).to receive(:schedule_sync) do |&blk|

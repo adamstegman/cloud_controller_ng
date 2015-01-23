@@ -96,7 +96,8 @@ module VCAP::CloudController
     end
 
     describe '#create' do
-      let(:package) { PackageModel.make }
+      let(:space) { Space.make }
+      let(:package) { PackageModel.make(space_guid: space.guid) }
       let(:package_guid) { package.guid }
       let(:stack) { 'trusty32' }
       let(:memory_limit) { 12340 }
@@ -128,7 +129,16 @@ module VCAP::CloudController
         end
 
         context 'and the user is not a space developer' do
-          it 'fails'
+          before do
+            allow(access_context).to receive(:cannot?).and_return(true)
+          end
+
+          it 'fails with Unauthorized' do
+            expect {
+              droplets_handler.create(staging_message, access_context)
+            }.to raise_error(DropletsHandler::Unauthorized)
+            expect(access_context).to have_received(:cannot?).with(:create, kind_of(DropletModel), space)
+          end
         end
       end
 

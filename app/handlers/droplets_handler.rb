@@ -80,11 +80,11 @@ module VCAP::CloudController
 
     def create(message, access_context)
       package = PackageModel.find(guid: message.package_guid)
-      # return nil if package.nil?
-      # raise Unauthorized if access_context.cannot?(:read, package)
-      droplet = DropletModel.create(state: DropletModel::PENDING_STATE)
-      # return nil if droplet.nil?
-      # raise Unauthorized if access_context.cannot?(:read, droplet)
+      space = Space.find(guid: package.space_guid)
+
+      droplet = DropletModel.new(state: DropletModel::PENDING_STATE)
+      raise Unauthorized if access_context.cannot?(:create, droplet, space)
+      droplet.save
 
       @stagers.stager_for_package(package).stage_package(droplet, message.stack, message.memory_limit, message.disk_limit)
       droplet
