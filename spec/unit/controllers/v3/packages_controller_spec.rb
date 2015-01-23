@@ -339,7 +339,7 @@ module VCAP::CloudController
 
       context 'when the package does not exist' do
         before do
-          allow(droplets_handler).to receive(:create).and_raise(PackagesHandler::PackageNotFound)
+          allow(droplets_handler).to receive(:create).and_raise(DropletsHandler::PackageNotFound)
         end
 
         it 'returns a 404 ResourceNotFound error' do
@@ -373,6 +373,21 @@ module VCAP::CloudController
                 expect(error.response_code).to eq 422
               end
             end
+          end
+        end
+      end
+
+      context 'when the user cannot access the droplet' do
+        before do
+          allow(droplets_handler).to receive(:create).and_raise(DropletsHandler::Unauthorized)
+        end
+
+        it 'returns a 403 NotAuthorized error' do
+          expect {
+            packages_controller.stage(package.guid)
+          }.to raise_error do |error|
+            expect(error.name).to eq 'NotAuthorized'
+            expect(error.response_code).to eq 403
           end
         end
       end

@@ -85,8 +85,10 @@ module VCAP::CloudController
       droplet = @droplets_handler.create(staging_message, @access_context)
 
       [HTTP::CREATED, @droplet_presenter.present_json(droplet)]
-    rescue PackagesHandler::PackageNotFound
+    rescue DropletsHandler::PackageNotFound
       package_not_found!
+    rescue DropletsHandler::Unauthorized
+      unauthorized!
     end
 
     private

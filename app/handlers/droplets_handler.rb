@@ -72,6 +72,7 @@ module VCAP::CloudController
 
   class DropletsHandler
     class Unauthorized < StandardError; end
+    class PackageNotFound < StandardError; end
 
     def initialize(config, stagers)
       @config = config
@@ -80,6 +81,7 @@ module VCAP::CloudController
 
     def create(message, access_context)
       package = PackageModel.find(guid: message.package_guid)
+      raise PackageNotFound if package.nil?
       space = Space.find(guid: package.space_guid)
 
       droplet = DropletModel.new(state: DropletModel::PENDING_STATE)

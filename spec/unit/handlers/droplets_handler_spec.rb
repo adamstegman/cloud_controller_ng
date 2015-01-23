@@ -143,7 +143,13 @@ module VCAP::CloudController
       end
 
       context 'when the package does not exist' do
-        it 'fails'
+        let(:package_guid) { 'non-existant' }
+
+        it 'fails with PackageNotFound' do
+          expect {
+            droplets_handler.create(staging_message, access_context)
+          }.to raise_error(DropletsHandler::PackageNotFound)
+        end
       end
     end
   end
