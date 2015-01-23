@@ -97,7 +97,7 @@ module VCAP::CloudController
 
     describe '#create' do
       let(:space) { Space.make }
-      let(:package) { PackageModel.make(space_guid: space.guid, type: PackageModel::BITS_TYPE) }
+      let(:package) { PackageModel.make(space_guid: space.guid, state: PackageModel::READY_STATE, type: PackageModel::BITS_TYPE) }
       let(:package_guid) { package.guid }
       let(:stack) { 'trusty32' }
       let(:memory_limit) { 12340 }
@@ -119,6 +119,7 @@ module VCAP::CloudController
               droplet = droplets_handler.create(staging_message, access_context)
             }.to change(DropletModel, :count).by(1)
             expect(droplet.state).to eq(DropletModel::PENDING_STATE)
+            expect(droplet.package_guid).to eq(package_guid)
           end
 
           it 'initiates a staging request' do

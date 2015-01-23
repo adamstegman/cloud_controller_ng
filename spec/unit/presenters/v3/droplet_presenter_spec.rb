@@ -15,6 +15,9 @@ module VCAP::CloudController
         expect(result['hash']).to eq(droplet.droplet_hash)
         expect(result['created_at']).to eq(droplet.created_at.as_json)
         expect(result['_links']).to include('self')
+        expect(result['_links']['self']['href']).to eq("/v3/droplets/#{droplet.guid}")
+        expect(result['_links']).to include('package')
+        expect(result['_links']['package']['href']).to eq("/v3/packages/#{droplet.package_guid}")
       end
     end
   end

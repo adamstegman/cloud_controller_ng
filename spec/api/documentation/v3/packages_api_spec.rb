@@ -193,7 +193,11 @@ resource 'Packages (Experimental)', type: :api do
       let(:space) { VCAP::CloudController::Space.make }
       let(:space_guid) { space.guid }
       let!(:package_model) do
-        VCAP::CloudController::PackageModel.make(space_guid: space_guid, type: VCAP::CloudController::PackageModel::BITS_TYPE)
+        VCAP::CloudController::PackageModel.make(
+          space_guid: space_guid,
+          state: VCAP::CloudController::PackageModel::READY_STATE,
+          type: VCAP::CloudController::PackageModel::BITS_TYPE
+        )
       end
       let(:guid) { package_model.guid }
 
@@ -235,7 +239,8 @@ resource 'Packages (Experimental)', type: :api do
           'hash' => nil,
           'created_at' => droplet.created_at.as_json,
           '_links'     => {
-            'self'   => { 'href' => "/v3/droplets/#{droplet.guid}" },
+            'self'    => { 'href' => "/v3/droplets/#{droplet.guid}" },
+            'package' => { 'href' => "/v3/packages/#{guid}" },
           }
         }
 

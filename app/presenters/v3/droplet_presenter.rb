@@ -10,6 +10,9 @@ module VCAP::CloudController
           self: {
             href: "/v3/droplets/#{droplet.guid}"
           },
+          package: {
+            href: "/v3/packages/#{droplet.package_guid}"
+          }
         },
       }
 

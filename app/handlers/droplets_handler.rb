@@ -90,7 +90,7 @@ module VCAP::CloudController
       space = Space.find(guid: package.space_guid)
       raise SpaceNotFound if space.nil?
 
-      droplet = DropletModel.new(state: DropletModel::PENDING_STATE)
+      droplet = DropletModel.new(state: DropletModel::PENDING_STATE, package_guid: package.guid)
       raise Unauthorized if access_context.cannot?(:create, droplet, space)
       droplet.save
 
