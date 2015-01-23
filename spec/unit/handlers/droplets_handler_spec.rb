@@ -151,6 +151,19 @@ module VCAP::CloudController
           }.to raise_error(DropletsHandler::PackageNotFound)
         end
       end
+
+      context 'when the space does not exist' do
+        before do
+          package # just so it gets created
+          space.destroy
+        end
+
+        it 'fails with SpaceNotFound' do
+          expect {
+            droplets_handler.create(staging_message, access_context)
+          }.to raise_error(DropletsHandler::SpaceNotFound)
+        end
+      end
     end
   end
 end

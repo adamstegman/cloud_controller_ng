@@ -377,6 +377,21 @@ module VCAP::CloudController
         end
       end
 
+      context 'when the space does not exist' do
+        before do
+          allow(droplets_handler).to receive(:create).and_raise(DropletsHandler::SpaceNotFound)
+        end
+
+        it 'returns a 404 ResourceNotFound error' do
+          expect {
+            packages_controller.stage(package.guid)
+          }.to raise_error do |error|
+            expect(error.name).to eq 'ResourceNotFound'
+            expect(error.response_code).to eq 404
+          end
+        end
+      end
+
       context 'when the user cannot access the droplet' do
         before do
           allow(droplets_handler).to receive(:create).and_raise(DropletsHandler::Unauthorized)
